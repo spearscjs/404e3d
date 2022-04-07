@@ -25,8 +25,7 @@ class Conversations(APIView):
                 Conversation.objects.filter(Q(user1=user_id) | Q(user2=user_id))
                 .prefetch_related(
                     Prefetch(
-                        # TICKET 1: FIXED ORDER BY RIDDING OF '-' in django order_by function
-                        "messages", queryset=Message.objects.order_by("createdAt")
+                        "messages", queryset=Message.objects.order_by("-createdAt")
                     )
                 )
                 .all()
