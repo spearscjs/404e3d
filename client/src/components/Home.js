@@ -80,15 +80,14 @@ const Home = ({ user, logout }) => {
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
-      
-      setConversations(conversations.map((convo) => {
+      conversations.forEach((convo) => {
         if (convo.otherUser.id === recipientId) {
           convo.messages.push(message);
           convo.latestMessageText = message.text;
           convo.id = message.conversationId;
         }
-        return convo;
-      }));
+      });
+      setConversations(conversations);
     },
     [setConversations, conversations],
   );
@@ -116,7 +115,7 @@ const Home = ({ user, logout }) => {
       }));
 
     },
-    [],
+    [setConversations, conversations],
   );
 
   const setActiveChat = (username) => {
