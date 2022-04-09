@@ -43,8 +43,8 @@ class Conversations(APIView):
                     ],
                 }
 
-                # set properties for notification count and latest message preview
-                convo_dict["latestMessageText"] = convo_dict["messages"][0]["text"]
+                # set properties for notification count and latest messagelatestMessageText preview
+                convo_dict["latestMessageText"] = convo_dict["messages"][len(convo_dict["messages"])-1]["text"]
 
                 # set a property "otherUser" so that frontend will have easier access
                 user_fields = ["id", "username", "photoUrl"]
