@@ -20,7 +20,8 @@ const Home = ({ user, logout }) => {
   const socket = useContext(SocketContext);
 
   const [conversations, setConversations] = useState([]);
-  const [activeConversation, setActiveConversation] = useState(null);
+  const [activeConversation, setActiveConversation] = useState({user_id: null, username: null});
+
 
   const classes = useStyles();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -124,8 +125,9 @@ const Home = ({ user, logout }) => {
     [],
   );
 
-  const setActiveChat = (username) => {
-    setActiveConversation(username);
+  const setActiveChat = (convo) => {
+    const active_convo = {user_id: convo.otherUser.id, username: convo.otherUser.username}
+    setActiveConversation(active_convo);
   };
 
   const addOnlineUser = useCallback((id) => {
