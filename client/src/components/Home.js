@@ -142,8 +142,6 @@ const Home = ({ user, logout }) => {
     [activeConversation, socket],
   );
 
- 
-
   const addOnlineUser = useCallback((id) => {
     setConversations((prev) =>
       prev.map((convo) => {
@@ -188,6 +186,12 @@ const Home = ({ user, logout }) => {
   }, [socket]);
 
 
+
+  /* data parameter expects format
+    { lastMessageId: otherUserLastMessage.id,
+      conversationId: convo.id,
+      otherUserId: convo.otherUser.id }
+  */
   const markRead = useCallback((data) => { 
     setConversations( (prev) => {
       return prev.map( (convo) => {
