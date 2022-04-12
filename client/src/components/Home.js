@@ -102,7 +102,6 @@ const Home = ({ user, logout }) => {
       // if sender isn't null, that means the message needs to be put in a brand new convo
       const { message, sender = null } = data;
       if(activeConversation && activeConversation.id === message.conversationId && message.senderId === activeConversation.otherUser.id) {
-        console.log(message);
         socket.emit("mark-read", {
           lastMessageId: message.id,
           conversationId: activeConversation.id,

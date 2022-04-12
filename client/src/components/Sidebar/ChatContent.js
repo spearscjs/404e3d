@@ -50,7 +50,6 @@ const ChatContent = ({ conversation }) => {
 
   const { otherUser } = conversation;
   const latestMessageText = conversation.id && conversation.latestMessageText;
-  console.log(conversation.messages.length);
   const latestMessageIsRead = conversation.messages.length > 0 && 
       (conversation.messages[conversation.messages.length-1].isRead || 
       conversation.messages[conversation.messages.length-1].senderId !== otherUser.id);
