@@ -18,11 +18,6 @@ const useStyles = makeStyles((theme) => ({
     color: "#9CADC8",
     letterSpacing: -0.17,
   },
-  bubble: {
-    backgroundImage: 'linear-gradient(225deg, #6CC1FF 0%, #3A8DFF 100%)',
-    borderRadius: '0 5px 5px 5px',
-    alignSelf: 'flex-center',
-  }
 }));
 
 const ChatContent = ({ conversation }) => {
@@ -41,7 +36,7 @@ const ChatContent = ({ conversation }) => {
           {latestMessageText}
         </Typography>
       </Box>
-      <Box className={classes.bubble}>
+      <Box>
         <Typography className={classes.text}>{conversation.messages.filter(m => m.senderId === otherUser.id && m.isRead === false).length}</Typography>
       </Box>
       
