@@ -18,6 +18,11 @@ const useStyles = makeStyles((theme) => ({
     color: "#9CADC8",
     letterSpacing: -0.17,
   },
+  bubble: {
+    backgroundImage: 'linear-gradient(225deg, #6CC1FF 0%, #3A8DFF 100%)',
+    borderRadius: '0 5px 5px 5px',
+    alignSelf: 'flex-center',
+  }
 }));
 
 const ChatContent = ({ conversation }) => {
@@ -35,8 +40,11 @@ const ChatContent = ({ conversation }) => {
         <Typography className={classes.previewText}>
           {latestMessageText}
         </Typography>
-        {conversation.messages.filter(m => m.senderId === otherUser.id && m.isRead === false).length}
       </Box>
+      <Box className={classes.bubble}>
+        <Typography className={classes.text}>{conversation.messages.filter(m => m.senderId === otherUser.id && m.isRead === false).length}</Typography>
+      </Box>
+      
     </Box>
   );
 };

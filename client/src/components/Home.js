@@ -119,16 +119,24 @@ const Home = ({ user, logout }) => {
         newConvo.latestMessageText = message.text;
         setConversations((prev) => [newConvo, ...prev]);
       }
-
-      setConversations((prev) => prev.map((convo) => {
-        if (convo.id === message.conversationId) {
-          const convoCopy =  { ...convo };
-          convoCopy.messages.push(message);
-          convoCopy.latestMessageText = message.text;
-          return convoCopy;
-        }
-        return convo;
-      }));
+      else {
+        setConversations((prev) => {
+          const index = prev.findIndex((convo) => { 
+            return convo.id === message.conversationId;
+          });
+          if(index > -1 && prev[index].id === message.conversationId) {
+            const conversationsCopy = [...prev];
+            const convoCopy = conversationsCopy.splice(index,1)[0];
+            convoCopy.messages.push(message);
+            convoCopy.latestMessageText = message.text;
+            convoCopy.id = message.conversationId;
+            // move to front
+            conversationsCopy.unshift(convoCopy);
+            return conversationsCopy;
+          }
+          return prev;
+        })
+      }
 
     },
     [activeConversation, socket],
