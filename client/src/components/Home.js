@@ -20,7 +20,7 @@ const Home = ({ user, logout }) => {
   const socket = useContext(SocketContext);
 
   const [conversations, setConversations] = useState([]);
-  const [activeConversation, setActiveConversation] = useState({user_id: null, username: null});
+  const [activeConversation, setActiveConversation] = useState(null);
 
 
   const classes = useStyles();
@@ -94,13 +94,22 @@ const Home = ({ user, logout }) => {
       }));
   
     },
-    [setConversations, conversations],
+    [],
   );
 
   const addMessageToConversation = useCallback(
     (data) => {
       // if sender isn't null, that means the message needs to be put in a brand new convo
       const { message, sender = null } = data;
+      if(activeConversation && activeConversation.id === message.conversationId && message.senderId === activeConversation.otherUser.id) {
+        console.log("READ");
+        console.log(message);
+        socket.emit("mark-read", {
+          lastMessageId: message.id,
+          conversationId: activeConversation.id,
+          otherUserId: activeConversation.otherUser.id
+        });
+      }
       if (sender !== null) {
         const newConvo = {
           id: message.conversationId,
@@ -113,7 +122,7 @@ const Home = ({ user, logout }) => {
 
       setConversations((prev) => prev.map((convo) => {
         if (convo.id === message.conversationId) {
-          const convoCopy =  { ... convo };
+          const convoCopy =  { ...convo };
           convoCopy.messages.push(message);
           convoCopy.latestMessageText = message.text;
           return convoCopy;
@@ -122,13 +131,10 @@ const Home = ({ user, logout }) => {
       }));
 
     },
-    [],
+    [activeConversation, socket],
   );
 
-  const setActiveChat = (convo) => {
-    const active_convo = {user_id: convo.otherUser.id, username: convo.otherUser.username}
-    setActiveConversation(active_convo);
-  };
+ 
 
   const addOnlineUser = useCallback((id) => {
     setConversations((prev) =>
@@ -158,6 +164,41 @@ const Home = ({ user, logout }) => {
     );
   }, []);
 
+
+  const setActiveChat = useCallback((convo) => {
+    setActiveConversation(convo);
+    const otherUserMessages = convo.messages.filter(m => m.senderId === convo.otherUser.id);
+    if(otherUserMessages.length === 0) {
+      return;
+    }
+    const otherUserLastMessage = otherUserMessages[otherUserMessages.length-1];
+    socket.emit("mark-read", {
+      lastMessageId: otherUserLastMessage.id,
+      conversationId: convo.id,
+      otherUserId: convo.otherUser.id
+    });
+  }, [socket]);
+
+
+  const markRead = useCallback((data) => { 
+    setConversations( (prev) => {
+      return prev.map( (convo) => {
+        if(convo.id !== data.conversationId) {
+          return convo;
+        }
+        const convoCopy = { ...convo };
+        convoCopy.messages.map( (message) => {
+          if(message.senderId === data.otherUserId) {
+            message.isRead = true;
+          }
+          return message;
+        })
+        return convoCopy;
+      });
+    })
+  },[])
+  
+
   // Lifecycle
 
   useEffect(() => {
@@ -165,6 +206,7 @@ const Home = ({ user, logout }) => {
     socket.on("add-online-user", addOnlineUser);
     socket.on("remove-offline-user", removeOfflineUser);
     socket.on("new-message", addMessageToConversation);
+    socket.on("mark-read", markRead);
 
     return () => {
       // before the component is destroyed
@@ -172,8 +214,9 @@ const Home = ({ user, logout }) => {
       socket.off("add-online-user", addOnlineUser);
       socket.off("remove-offline-user", removeOfflineUser);
       socket.off("new-message", addMessageToConversation);
+      socket.off("mark-read", markRead);
     };
-  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket]);
+  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, markRead, socket]);
 
   useEffect(() => {
     // when fetching, prevent redirect

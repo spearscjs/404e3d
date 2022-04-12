@@ -35,6 +35,7 @@ const ChatContent = ({ conversation }) => {
         <Typography className={classes.previewText}>
           {latestMessageText}
         </Typography>
+        {conversation.messages.filter(m => m.senderId === otherUser.id && m.isRead === false).length}
       </Box>
     </Box>
   );
