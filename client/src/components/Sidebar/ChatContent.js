@@ -19,13 +19,15 @@ const useStyles = makeStyles((theme) => ({
     letterSpacing: -0.17,
   },
   unreadPreviewText: {
+    fontSize: 12,
     color: 'black',
+    fontWeight: "bold",
     letterSpacing: -0.17,
   },
   unreadBubble: {
     height: 24,
     borderRadius: 12,
-    padding: 2,
+    padding: 1,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -35,6 +37,7 @@ const useStyles = makeStyles((theme) => ({
   },
   text: {
     fontSize: 12,
+    fontWeight: "bold",
     letterSpacing: -0.2,
     padding: 8,
     color: '#FFFFFF',
