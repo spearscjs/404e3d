@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
+import { normalizeUnits } from "moment";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -33,15 +34,14 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'center',
     backgroundColor: '#3A8DFF',
     marginRight: 25,
-    alignSelf: 'center'
+    alignSelf: 'center',
   },
-  text: {
+  bubbleText: {
     fontSize: 12,
     fontWeight: "bold",
     letterSpacing: -0.2,
     padding: 8,
     color: '#FFFFFF',
-    
   },
 }));
 
@@ -50,9 +50,11 @@ const ChatContent = ({ conversation }) => {
 
   const { otherUser } = conversation;
   const latestMessageText = conversation.id && conversation.latestMessageText;
+  console.log(conversation.messages.length);
   const latestMessageIsRead = conversation.messages.length > 0 && 
-                                conversation.messages[conversation.messages.length-1].isRead || 
-                                conversation.messages[conversation.messages.length-1].senderId !== otherUser.id;
+      (conversation.messages[conversation.messages.length-1].isRead || 
+      conversation.messages[conversation.messages.length-1].senderId !== otherUser.id);
+  const numberOfUnreadMessages = conversation.messages.filter(m => m.senderId === otherUser.id && m.isRead === false).length;
 
   return (
     <Box className={classes.root}>
@@ -64,8 +66,10 @@ const ChatContent = ({ conversation }) => {
           {latestMessageText}
         </Typography>
       </Box>
-      <Box className = {classes.unreadBubble}>
-        <Typography className={classes.text}>{conversation.messages.filter(m => m.senderId === otherUser.id && m.isRead === false).length}</Typography>
+      <Box className = {classes.unreadBubble} style = {{display: numberOfUnreadMessages === 0  ? 'none' : Box.display}}>
+        <Typography className={classes.bubbleText}>
+          {numberOfUnreadMessages}
+        </Typography>
       </Box>
       
     </Box>
