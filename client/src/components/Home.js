@@ -70,7 +70,7 @@ const Home = ({ user, logout }) => {
       if (!body.conversationId) {
         addNewConvo(body.recipientId, data.message);
       } else {
-        addMessageToConversation(data);
+        addMessageToConversation(data, body.recipientId);
       }
 
       sendMessage(data, body);
@@ -78,21 +78,27 @@ const Home = ({ user, logout }) => {
       console.error(error);
     }
   };
+  
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
-     
-      setConversations(prev => prev.map((convo) => {
-        if (convo.otherUser.id === recipientId) {
-          const convoCopy = { ...convo };
+      setConversations(prev => { 
+        const index = prev.findIndex((convo) => { 
+          return convo.otherUser.id === recipientId;
+        });
+        if(index > -1) {
+          const conversationsCopy = [...prev];
+          const convoCopy = conversationsCopy.splice(index,1)[0];
           convoCopy.messages.push(message);
           convoCopy.latestMessageText = message.text;
           convoCopy.id = message.conversationId;
-          return convoCopy;
+          // move to front
+          conversationsCopy.unshift(convoCopy);
+          return conversationsCopy;
         }
-        return convo;
-      }));
-  
+        return prev;
+        
+      })
     },
     [],
   );
@@ -100,41 +106,38 @@ const Home = ({ user, logout }) => {
   const addMessageToConversation = useCallback(
     (data) => {
       // if sender isn't null, that means the message needs to be put in a brand new convo
-      const { message, sender = null } = data;
-      if(activeConversation && activeConversation.id === message.conversationId && message.senderId === activeConversation.otherUser.id) {
-        socket.emit("mark-read", {
-          lastMessageId: message.id,
-          conversationId: activeConversation.id,
-          otherUserId: activeConversation.otherUser.id
-        });
-      }
-      if (sender !== null) {
-        const newConvo = {
-          id: message.conversationId,
-          otherUser: sender,
-          messages: [message],
-        };
-        newConvo.latestMessageText = message.text;
-        setConversations((prev) => [newConvo, ...prev]);
-      }
+      if(data['recipientId'] === user.id) {
+        const { message, sender = null } = data;
+        if (sender !== null) {
+          const newConvo = {
+            id: message.conversationId,
+            otherUser: sender,
+            messages: [message],
+          };
+          newConvo.latestMessageText = message.text;
+          setConversations((prev) => [newConvo, ...prev]);
+        }
       else {
-        setConversations((prev) => {
-          const index = prev.findIndex((convo) => { 
-            return convo.id === message.conversationId;
-          });
-          if(index > -1 && prev[index].id === message.conversationId) {
-            const conversationsCopy = [...prev];
-            const convoCopy = conversationsCopy.splice(index,1)[0];
-            convoCopy.messages.push(message);
-            convoCopy.latestMessageText = message.text;
-            convoCopy.id = message.conversationId;
-            // move to front
-            conversationsCopy.unshift(convoCopy);
-            return conversationsCopy;
-          }
-          return prev;
-        })
+          setConversations((prev) => {
+            const index = prev.findIndex((convo) => { 
+              return convo.id === message.conversationId;
+            });
+            if(index > -1 && prev[index].id === message.conversationId) {
+              const conversationsCopy = [...prev];
+              const convoCopy = conversationsCopy.splice(index,1)[0];
+              convoCopy.messages.push(message);
+              convoCopy.latestMessageText = message.text;
+              convoCopy.id = message.conversationId;
+              // move to front
+              conversationsCopy.unshift(convoCopy);
+              return conversationsCopy;
+            }
+            return prev;
+          })
+        }
       }
+   
+      
 
     },
     [activeConversation, socket],
