@@ -92,7 +92,7 @@ const Home = ({ user, logout }) => {
           convoCopy.messages.push(message);
           convoCopy.latestMessageText = message.text;
           convoCopy.id = message.conversationId;
-          // move to front
+          // move to front of conversations (top of sidebar)
           conversationsCopy.unshift(convoCopy);
           return conversationsCopy;
         }
