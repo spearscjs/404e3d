@@ -70,7 +70,7 @@ const Home = ({ user, logout }) => {
       if (!body.conversationId) {
         addNewConvo(body.recipientId, data.message);
       } else {
-        addMessageToConversation(data, body.recipientId);
+        addMessageToConversation(data);
       }
 
       sendMessage(data, body);
@@ -104,9 +104,9 @@ const Home = ({ user, logout }) => {
   );
 
   const addMessageToConversation = useCallback(
-    (data, recipientId) => {
+    (data) => {
       // if sender isn't null, that means the message needs to be put in a brand new convo
-      if(data['recipientId'] === user.id || data['message'].senderId === user.id) {
+      if(data['message'].senderId === user.id || data['recipientId'] === user.id) {
         const { message, sender = null } = data;
         if (sender !== null) {
           const newConvo = {
