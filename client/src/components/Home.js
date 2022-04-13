@@ -122,12 +122,22 @@ const Home = ({ user, logout }) => {
             const index = prev.findIndex((convo) => { 
               return convo.id === message.conversationId;
             });
+            // add message to convo, place convo at top of conversations list 
             if(index > -1 && prev[index].id === message.conversationId) {
               const conversationsCopy = [...prev];
               const convoCopy = conversationsCopy.splice(index,1)[0];
               convoCopy.messages.push(message);
               convoCopy.latestMessageText = message.text;
               convoCopy.id = message.conversationId;
+              // mark read if they are the reciever and conversation is activeConversation
+              if(activeConversation && activeConversation.id === message.conversationId && message.senderId !== user.id) {
+                message.isRead = true;
+                socket.emit("mark-read", {
+                  lastMessageId: message.id,
+                  conversationId: convoCopy.id,
+                  otherUserId: convoCopy.otherUser.id
+                });
+              }
               // move to front
               conversationsCopy.unshift(convoCopy);
               return conversationsCopy;
