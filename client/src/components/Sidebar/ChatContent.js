@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
     letterSpacing: -0.17,
   },
   unreadBubble: {
-    height: 24,
+    height: 20,
     borderRadius: 12,
     padding: 1,
     display: 'flex',
@@ -37,10 +37,10 @@ const useStyles = makeStyles((theme) => ({
     alignSelf: 'center',
   },
   bubbleText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: "bold",
-    letterSpacing: -0.2,
-    padding: 8,
+    letterSpacing: -0.5,
+    padding: 7,
     color: '#FFFFFF',
   },
 }));

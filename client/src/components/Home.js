@@ -184,7 +184,6 @@ const Home = ({ user, logout }) => {
   }, [socket]);
 
 
-
   /* data parameter expects format
     { lastMessageId: otherUserLastMessage.id,
       conversationId: convo.id,
