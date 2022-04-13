@@ -69,7 +69,7 @@ const Home = ({ user, logout }) => {
       if (!body.conversationId) {
         addNewConvo(body.recipientId, data.message);
       } else {
-        addMessageToConversation(data);
+        addMessageToConversation(data, body.recipientId);
       }
 
       sendMessage(data, body);
@@ -81,6 +81,7 @@ const Home = ({ user, logout }) => {
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
+      console.log(message);
      
       setConversations(prev => { 
         const index = prev.findIndex((convo) => { 
@@ -106,34 +107,38 @@ const Home = ({ user, logout }) => {
   const addMessageToConversation = useCallback(
     (data) => {
       // if sender isn't null, that means the message needs to be put in a brand new convo
-      const { message, sender = null } = data;
-      if (sender !== null) {
-        const newConvo = {
-          id: message.conversationId,
-          otherUser: sender,
-          messages: [message],
-        };
-        newConvo.latestMessageText = message.text;
-        setConversations((prev) => [newConvo, ...prev]);
+      if(data['recipientId'] === user.id) {
+        const { message, sender = null } = data;
+        if (sender !== null) {
+          const newConvo = {
+            id: message.conversationId,
+            otherUser: sender,
+            messages: [message],
+          };
+          newConvo.latestMessageText = message.text;
+          setConversations((prev) => [newConvo, ...prev]);
+        }
+      else {
+          setConversations((prev) => {
+            const index = prev.findIndex((convo) => { 
+              return convo.id === message.conversationId;
+            });
+            if(index > -1 && prev[index].id === message.conversationId) {
+              const conversationsCopy = [...prev];
+              const convoCopy = conversationsCopy.splice(index,1)[0];
+              convoCopy.messages.push(message);
+              convoCopy.latestMessageText = message.text;
+              convoCopy.id = message.conversationId;
+              // move to front
+              conversationsCopy.unshift(convoCopy);
+              return conversationsCopy;
+            }
+            return prev;
+          })
+        }
       }
-     else {
-        setConversations((prev) => {
-          const index = prev.findIndex((convo) => { 
-            return convo.id === message.conversationId;
-          });
-          if(index > -1 && prev[index].id === message.conversationId) {
-            const conversationsCopy = [...prev];
-            const convoCopy = conversationsCopy.splice(index,1)[0];
-            convoCopy.messages.push(message);
-            convoCopy.latestMessageText = message.text;
-            convoCopy.id = message.conversationId;
-            // move to front
-            conversationsCopy.unshift(convoCopy);
-            return conversationsCopy;
-          }
-          return prev;
-        })
-      }
+   
+      
 
     },
     [],
