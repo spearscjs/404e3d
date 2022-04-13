@@ -103,9 +103,9 @@ const Home = ({ user, logout }) => {
   );
 
   const addMessageToConversation = useCallback(
-    (data) => {
+    (data, recipientId) => {
       // if sender isn't null, that means the message needs to be put in a brand new convo
-      if(data['recipientId'] === user.id) {
+      if(data['recipientId'] === user.id || data['message'].senderId === user.id) {
         const { message, sender = null } = data;
         if (sender !== null) {
           const newConvo = {
