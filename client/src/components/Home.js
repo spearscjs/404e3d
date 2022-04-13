@@ -77,21 +77,28 @@ const Home = ({ user, logout }) => {
       console.error(error);
     }
   };
+  
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
      
-      setConversations(prev => prev.map((convo) => {
-        if (convo.otherUser.id === recipientId) {
-          const convoCopy = { ...convo };
+      setConversations(prev => { 
+        const index = prev.findIndex((convo) => { 
+          return convo.otherUser.id === recipientId;
+        });
+        if(index > -1) {
+          const conversationsCopy = [...prev];
+          const convoCopy = conversationsCopy.splice(index,1)[0];
           convoCopy.messages.push(message);
           convoCopy.latestMessageText = message.text;
           convoCopy.id = message.conversationId;
-          return convoCopy;
+          // move to front
+          conversationsCopy.unshift(convoCopy);
+          return conversationsCopy;
         }
-        return convo;
-      }));
-  
+        return prev;
+        
+      })
     },
     [setConversations, conversations],
   );
