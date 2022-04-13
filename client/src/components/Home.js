@@ -136,9 +136,6 @@ const Home = ({ user, logout }) => {
           })
         }
       }
-   
-      
-
     },
     [activeConversation, socket],
   );
