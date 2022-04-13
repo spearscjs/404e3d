@@ -81,8 +81,6 @@ const Home = ({ user, logout }) => {
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
-      console.log(message);
-     
       setConversations(prev => { 
         const index = prev.findIndex((convo) => { 
           return convo.otherUser.id === recipientId;
