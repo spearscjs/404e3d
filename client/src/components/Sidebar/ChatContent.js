@@ -25,15 +25,18 @@ const useStyles = makeStyles((theme) => ({
     letterSpacing: -0.17,
   },
   unreadBubble: {
+    display: 'flex',
     height: 20,
     borderRadius: 10,
-    display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#3A8DFF',
     marginRight: 25,
     alignSelf: 'center',
     padding: 7.5,
+  },
+  hidden: {
+    display: 'none'
   },
   bubbleText: {
     fontSize: 10,
@@ -44,14 +47,15 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const ChatContent = ({ conversation }) => {
-  const classes = useStyles();
 
+  const classes = useStyles();
   const { otherUser } = conversation;
   const latestMessageText = conversation.id && conversation.latestMessageText;
   const latestMessageIsRead = conversation.messages.length > 0 && 
       (conversation.messages[conversation.messages.length-1].isRead || 
       conversation.messages[conversation.messages.length-1].senderId !== otherUser.id);
-  const numberOfUnreadMessages = conversation.messages.filter(m => m.senderId === otherUser.id && m.isRead === false).length;
+  const numOfUnreadMessages = conversation.numOfUnreadMessages;
+
 
   return (
     <Box className={classes.root}>
@@ -63,9 +67,9 @@ const ChatContent = ({ conversation }) => {
           {latestMessageText}
         </Typography>
       </Box>
-      <Box className = {classes.unreadBubble} style = {{display: numberOfUnreadMessages === 0  ? 'none' : Box.display}}>
+      <Box className = {numOfUnreadMessages === 0  ? classes.hidden : classes.unreadBubble }>
         <Typography className={classes.bubbleText}>
-          {numberOfUnreadMessages}
+          {numOfUnreadMessages}
         </Typography>
       </Box>
       

@@ -6,8 +6,16 @@ from rest_framework.views import APIView
 
 
 class Messages(APIView):
-    """expects {recipientId, text, conversationId } in body (conversationId will be null if no conversation exists yet)"""
 
+    """expects {otherUserId, lastMessageId, conversationId } in body"""
+    def patch(self, request):
+        data = request.data
+        # mark all messages the other user sent in the conversation that were createdAt before lastMessage.createdAt 
+        messages = Message.objects.filter(senderId = data["otherUserId"], conversation_id = data["conversationId"], 
+            createdAt__lte = (Message.objects.filter(id = data["lastMessageId"]).values('createdAt')[0]['createdAt']), isRead = False).update(isRead = True)
+        return JsonResponse(data)
+
+    """expects {recipientId, text, conversationId } in body (conversationId will be null if no conversation exists yet)"""
     def post(self, request):
         try:
             user = get_user(request)

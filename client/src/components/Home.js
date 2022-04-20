@@ -38,7 +38,7 @@ const Home = ({ user, logout }) => {
     users.forEach((user) => {
       // only create a fake convo if we don't already have a convo with this user
       if (!currentUsers[user.id]) {
-        let fakeConvo = { otherUser: user, messages: [] };
+        let fakeConvo = { numOfUnreadMessages: 0, otherUser: user, messages: [] };
         newState.push(fakeConvo);
       }
     });
@@ -78,6 +78,16 @@ const Home = ({ user, logout }) => {
       console.error(error);
     }
   };
+
+  const patchReadMessage = useCallback((lastMessageId, conversationId, otherUserId) => {
+    const reqBody = {
+      lastMessageId: lastMessageId,
+      conversationId: conversationId,
+      otherUserId: otherUserId
+    };
+    axios.patch("/api/messages", reqBody);
+    socket.emit("mark-read", reqBody); 
+  }, [socket]);
   
 
   const addNewConvo = useCallback(
@@ -113,6 +123,7 @@ const Home = ({ user, logout }) => {
             id: message.conversationId,
             otherUser: sender,
             messages: [message],
+            numOfUnreadMessages: 1,
           };
           newConvo.latestMessageText = message.text;
           setConversations((prev) => [newConvo, ...prev]);
@@ -132,12 +143,12 @@ const Home = ({ user, logout }) => {
               // mark read if they are the reciever and conversation is activeConversation
               if(activeConversation && activeConversation.id === message.conversationId && message.senderId !== user.id) {
                 message.isRead = true;
-                socket.emit("mark-read", {
-                  lastMessageId: message.id,
-                  conversationId: convoCopy.id,
-                  otherUserId: convoCopy.otherUser.id
-                });
+                patchReadMessage(message.id, convoCopy.id, convoCopy.otherUser.id);
               }
+              else if(message.senderId !== user.id) {
+                convoCopy["numOfUnreadMessages"] += 1;
+              }
+              
               // move to front
               conversationsCopy.unshift(convoCopy);
               return conversationsCopy;
@@ -147,7 +158,7 @@ const Home = ({ user, logout }) => {
         }
       }
     },
-    [activeConversation, socket],
+    [activeConversation, user.id, patchReadMessage],
   );
 
   const addOnlineUser = useCallback((id) => {
@@ -186,12 +197,9 @@ const Home = ({ user, logout }) => {
       return;
     }
     const otherUserLastMessage = otherUserMessages[otherUserMessages.length-1];
-    socket.emit("mark-read", {
-      lastMessageId: otherUserLastMessage.id,
-      conversationId: convo.id,
-      otherUserId: convo.otherUser.id
-    });
-  }, [socket]);
+    patchReadMessage(otherUserLastMessage.id, convo.id, convo.otherUser.id);
+    
+  }, [patchReadMessage]);
 
 
   /* data parameter expects format
@@ -208,14 +216,20 @@ const Home = ({ user, logout }) => {
         const convoCopy = { ...convo };
         convoCopy.messages.map( (message) => {
           if(message.senderId === data.otherUserId) {
+            if(message.senderId !== user.id && !message.isRead) {
+              convoCopy["numOfUnreadMessages"] = 0;
+            }
             message.isRead = true;
+            if(message.senderId === user.id) {
+              convoCopy["otherUser"]["lastReadMessage"] = message.id;
+            }
           }
           return message;
         })
         return convoCopy;
       });
     })
-  },[])
+  },[user.id])
   
 
   // Lifecycle

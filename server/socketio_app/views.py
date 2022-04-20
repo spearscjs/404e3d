@@ -42,7 +42,4 @@ def logout(sid, user_id):
 
 @sio.on("mark-read")
 def readMessage(sid, data):
-    # mark all messages the other user sent in the conversation that were createdAt before lastMessage.createdAt 
-    messages = Message.objects.filter(senderId = data["otherUserId"], conversation_id = data["conversationId"], 
-        createdAt__lte = (Message.objects.filter(id = data["lastMessageId"]).values('createdAt')[0]['createdAt']), isRead = False).update(isRead = True)
     sio.emit("mark-read", data)
