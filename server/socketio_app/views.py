@@ -3,10 +3,7 @@ async_mode = None
 import os
 
 import socketio
-from messenger_backend.models import Message
-from messenger_backend.models import Conversation
 from online_users import online_users
-from django.db import models
 
 basedir = os.path.dirname(os.path.realpath(__file__))
 sio = socketio.Server(async_mode=async_mode, logger=False, cors_allowed_origins='*')
@@ -39,7 +36,3 @@ def logout(sid, user_id):
     if user_id in online_users:
         online_users.remove(user_id)
     sio.emit("remove-offline-user", user_id, skip_sid=sid)
-
-@sio.on("mark-read")
-def readMessage(sid, data):
-    sio.emit("mark-read", data)

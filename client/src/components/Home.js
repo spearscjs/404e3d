@@ -22,7 +22,6 @@ const Home = ({ user, logout }) => {
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
 
-
   const classes = useStyles();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -38,7 +37,7 @@ const Home = ({ user, logout }) => {
     users.forEach((user) => {
       // only create a fake convo if we don't already have a convo with this user
       if (!currentUsers[user.id]) {
-        let fakeConvo = { numOfUnreadMessages: 0, otherUser: user, messages: [] };
+        let fakeConvo = { otherUser: user, messages: [] };
         newState.push(fakeConvo);
       }
     });
@@ -78,16 +77,6 @@ const Home = ({ user, logout }) => {
       console.error(error);
     }
   };
-
-  const patchReadMessage = useCallback((lastMessageId, conversationId, otherUserId) => {
-    const reqBody = {
-      lastMessageId: lastMessageId,
-      conversationId: conversationId,
-      otherUserId: otherUserId
-    };
-    axios.patch("/api/messages", reqBody);
-    socket.emit("mark-read", reqBody); 
-  }, [socket]);
   
 
   const addNewConvo = useCallback(
@@ -102,7 +91,7 @@ const Home = ({ user, logout }) => {
           convoCopy.messages.push(message);
           convoCopy.latestMessageText = message.text;
           convoCopy.id = message.conversationId;
-          // move to front of conversations (top of sidebar)
+          // move to front
           conversationsCopy.unshift(convoCopy);
           return conversationsCopy;
         }
@@ -110,20 +99,19 @@ const Home = ({ user, logout }) => {
         
       })
     },
-    [],
+    [setConversations, conversations],
   );
 
   const addMessageToConversation = useCallback(
     (data) => {
       // if sender isn't null, that means the message needs to be put in a brand new convo
-      if(data['message'].senderId === user.id || data['recipientId'] === user.id) {
+      if(data['recipientId'] === user.id || data['message'].senderId === user.id) {
         const { message, sender = null } = data;
         if (sender !== null) {
           const newConvo = {
             id: message.conversationId,
             otherUser: sender,
             messages: [message],
-            numOfUnreadMessages: 1,
           };
           newConvo.latestMessageText = message.text;
           setConversations((prev) => [newConvo, ...prev]);
@@ -133,22 +121,12 @@ const Home = ({ user, logout }) => {
             const index = prev.findIndex((convo) => { 
               return convo.id === message.conversationId;
             });
-            // add message to convo, place convo at top of conversations list 
             if(index > -1 && prev[index].id === message.conversationId) {
               const conversationsCopy = [...prev];
               const convoCopy = conversationsCopy.splice(index,1)[0];
               convoCopy.messages.push(message);
               convoCopy.latestMessageText = message.text;
               convoCopy.id = message.conversationId;
-              // mark read if they are the reciever and conversation is activeConversation
-              if(activeConversation && activeConversation.id === message.conversationId && message.senderId !== user.id) {
-                message.isRead = true;
-                patchReadMessage(message.id, convoCopy.id, convoCopy.otherUser.id);
-              }
-              else if(message.senderId !== user.id) {
-                convoCopy["numOfUnreadMessages"] += 1;
-              }
-              
               // move to front
               conversationsCopy.unshift(convoCopy);
               return conversationsCopy;
@@ -158,8 +136,12 @@ const Home = ({ user, logout }) => {
         }
       }
     },
-    [activeConversation, user.id, patchReadMessage],
+    [],
   );
+
+  const setActiveChat = (username) => {
+    setActiveConversation(username);
+  };
 
   const addOnlineUser = useCallback((id) => {
     setConversations((prev) =>
@@ -189,49 +171,6 @@ const Home = ({ user, logout }) => {
     );
   }, []);
 
-
-  const setActiveChat = useCallback((convo) => {
-    setActiveConversation(convo);
-    const otherUserMessages = convo.messages.filter(m => m.senderId === convo.otherUser.id);
-    if(otherUserMessages.length === 0) {
-      return;
-    }
-    const otherUserLastMessage = otherUserMessages[otherUserMessages.length-1];
-    patchReadMessage(otherUserLastMessage.id, convo.id, convo.otherUser.id);
-    
-  }, [patchReadMessage]);
-
-
-  /* data parameter expects format
-    { lastMessageId: otherUserLastMessage.id,
-      conversationId: convo.id,
-      otherUserId: convo.otherUser.id }
-  */
-  const markRead = useCallback((data) => { 
-    setConversations( (prev) => {
-      return prev.map( (convo) => {
-        if(convo.id !== data.conversationId) {
-          return convo;
-        }
-        const convoCopy = { ...convo };
-        convoCopy.messages.map( (message) => {
-          if(message.senderId === data.otherUserId) {
-            if(message.senderId !== user.id && !message.isRead) {
-              convoCopy["numOfUnreadMessages"] = 0;
-            }
-            message.isRead = true;
-            if(message.senderId === user.id) {
-              convoCopy["otherUser"]["lastReadMessage"] = message.id;
-            }
-          }
-          return message;
-        })
-        return convoCopy;
-      });
-    })
-  },[user.id])
-  
-
   // Lifecycle
 
   useEffect(() => {
@@ -239,7 +178,6 @@ const Home = ({ user, logout }) => {
     socket.on("add-online-user", addOnlineUser);
     socket.on("remove-offline-user", removeOfflineUser);
     socket.on("new-message", addMessageToConversation);
-    socket.on("mark-read", markRead);
 
     return () => {
       // before the component is destroyed
@@ -247,9 +185,8 @@ const Home = ({ user, logout }) => {
       socket.off("add-online-user", addOnlineUser);
       socket.off("remove-offline-user", removeOfflineUser);
       socket.off("new-message", addMessageToConversation);
-      socket.off("mark-read", markRead);
     };
-  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, markRead, socket]);
+  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket]);
 
   useEffect(() => {
     // when fetching, prevent redirect

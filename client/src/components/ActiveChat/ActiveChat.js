@@ -27,11 +27,9 @@ const ActiveChat = ({
 }) => {
   const classes = useStyles();
 
-  const conversation = 
-  
-  conversations
+  const conversation = conversations
     ? conversations.find(
-        (conversation) => activeConversation && conversation.otherUser.username === activeConversation.otherUser.username
+        (conversation) => conversation.otherUser.username === activeConversation
       )
     : {};
 
