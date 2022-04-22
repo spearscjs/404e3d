@@ -79,13 +79,12 @@ const Home = ({ user, logout }) => {
     }
   };
 
-  const patchReadMessage = useCallback((lastMessageId, conversationId, otherUserId) => {
+  const patchReadMessage = useCallback(async (conversationId, otherUserId) => {
     const reqBody = {
-      lastMessageId: lastMessageId,
       conversationId: conversationId,
       otherUserId: otherUserId
     };
-    axios.patch("/api/messages", reqBody);
+    await axios.patch("/api/messages", reqBody);
     socket.emit("mark-read", reqBody); 
   }, [socket]);
   
@@ -143,7 +142,7 @@ const Home = ({ user, logout }) => {
               // mark read if they are the reciever and conversation is activeConversation
               if(activeConversation && activeConversation.id === message.conversationId && message.senderId !== user.id) {
                 message.isRead = true;
-                patchReadMessage(message.id, convoCopy.id, convoCopy.otherUser.id);
+                patchReadMessage(convoCopy.id, convoCopy.otherUser.id);
               }
               else if(message.senderId !== user.id) {
                 convoCopy["numOfUnreadMessages"] += 1;
@@ -192,12 +191,7 @@ const Home = ({ user, logout }) => {
 
   const setActiveChat = useCallback((convo) => {
     setActiveConversation(convo);
-    const otherUserMessages = convo.messages.filter(m => m.senderId === convo.otherUser.id);
-    if(otherUserMessages.length === 0) {
-      return;
-    }
-    const otherUserLastMessage = otherUserMessages[otherUserMessages.length-1];
-    patchReadMessage(otherUserLastMessage.id, convo.id, convo.otherUser.id);
+    patchReadMessage(convo.id, convo.otherUser.id);
     
   }, [patchReadMessage]);
 

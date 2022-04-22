@@ -28,12 +28,11 @@ const ActiveChat = ({
   const classes = useStyles();
 
   const conversation = 
-  
-  conversations
-    ? conversations.find(
-        (conversation) => activeConversation && conversation.otherUser.username === activeConversation.otherUser.username
-      )
-    : {};
+    conversations
+      ? conversations.find(
+          (conversation) => activeConversation && conversation.otherUser.username === activeConversation.otherUser.username
+        )
+      : {};
 
   const isConversation = (obj) => {
     return obj !== {} && obj !== undefined;

@@ -9,11 +9,24 @@ class Messages(APIView):
 
     """expects {otherUserId, lastMessageId, conversationId } in body"""
     def patch(self, request):
-        data = request.data
-        # mark all messages the other user sent in the conversation that were createdAt before lastMessage.createdAt 
-        messages = Message.objects.filter(senderId = data["otherUserId"], conversation_id = data["conversationId"], 
-            createdAt__lte = (Message.objects.filter(id = data["lastMessageId"]).values('createdAt')[0]['createdAt']), isRead = False).update(isRead = True)
-        return JsonResponse(data)
+        try:
+            user = get_user(request)
+
+            if user.is_anonymous:
+                return HttpResponse(status=401)
+
+            data = request.data
+
+            conversation = Conversation.objects.filter(id = data["conversationId"]).first()
+            if (user.id != conversation.user1_id and user.id != conversation.user2_id):
+                return HttpResponse(status=403)
+
+
+            # mark all messages the other user sent in the conversation that were createdAt before lastMessage.createdAt 
+            messages = Message.objects.filter(senderId = data["otherUserId"], conversation_id = data["conversationId"]).update(isRead = True)
+            return HttpResponse(status=204)
+        except Exception as e:
+            return HttpResponse(status=500)
 
     """expects {recipientId, text, conversationId } in body (conversationId will be null if no conversation exists yet)"""
     def post(self, request):

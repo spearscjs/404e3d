@@ -36,7 +36,7 @@ const useStyles = makeStyles(() => ({
 const SenderBubble = ({ time, text, otherUser, messageId }) => {
   const classes = useStyles();
 
-  if(otherUser["lastReadMessage"] === messageId) {
+  if(otherUser?.lastReadMessage === messageId) {
     return (
       <Box className={classes.root}>
         <Typography className={classes.date}>{time}</Typography>

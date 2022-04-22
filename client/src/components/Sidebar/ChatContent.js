@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography } from "@material-ui/core";
+import { Badge, Box, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles((theme) => ({
@@ -67,11 +67,11 @@ const ChatContent = ({ conversation }) => {
           {latestMessageText}
         </Typography>
       </Box>
-      <Box className = {numOfUnreadMessages === 0  ? classes.hidden : classes.unreadBubble }>
+      <Badge className = {numOfUnreadMessages === 0  ? classes.hidden : classes.unreadBubble }>
         <Typography className={classes.bubbleText}>
           {numOfUnreadMessages}
         </Typography>
-      </Box>
+      </Badge>
       
     </Box>
   );

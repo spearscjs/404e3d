@@ -63,7 +63,7 @@ class Conversations(APIView):
                 readMessages = [m for m in convo_dict["messages"] if m["senderId"] == user_id and m['isRead']]
                 lastReadMessage = None
                 if(readMessages):
-                    lastReadMessage = readMessages[len(readMessages) - 1]["id"]
+                    lastReadMessage = readMessages[-1]["id"]
                 convo_dict["otherUser"]["lastReadMessage"] = lastReadMessage
 
                 # set property for unread messages
@@ -71,8 +71,8 @@ class Conversations(APIView):
                     Message.objects.filter(Q(conversation_id = convo.id) & Q(isRead = False) & ~ Q(senderId = user_id))
                     .count()
                 ) 
-
                 convo_dict["numOfUnreadMessages"] = numOfUnreadMessages
+
 
                 conversations_response.append(convo_dict)
             conversations_response.sort(
